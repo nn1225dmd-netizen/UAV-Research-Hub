@@ -1,3 +1,4 @@
+from contextlib import closing
 import sqlite3
 import json
 from pathlib import Path
@@ -18,7 +19,7 @@ def connect(path):
     return c
 
 def init(path):
-    with connect(path) as c:
+    with closing(connect(path)) as c, c:
         version = c.execute('PRAGMA user_version').fetchone()[0]
         if version > 1:
             raise ValueError('資料庫版本較新，請使用新版程式開啟，勿降級。')

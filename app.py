@@ -1,3 +1,4 @@
+from contextlib import closing
 from pathlib import Path
 import os
 import sqlite3
@@ -32,7 +33,7 @@ def source_detail(c,identity):
     st.write('原始文件詳細資料',d)
     st.caption('原始位置僅供本機人工核對；第一階段不搬移或上傳原檔。')
 
-with connect(DB) as c:
+with closing(connect(DB)) as c, c:
     vendors={r['code']:r['name'] for r in c.execute('SELECT * FROM vendors ORDER BY code')}
     logs={r['code']:r['hint'] for r in c.execute('SELECT * FROM logs ORDER BY code')}
     docs={r['id']:r['title'] for r in c.execute('SELECT * FROM documents')}
@@ -192,7 +193,7 @@ with connect(DB) as c:
         if st.button('建立資料庫安全備份（不含原始文件）'):
             out=DATA/'backups'; out.mkdir(exist_ok=True)
             dest=out/f"hub-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}.sqlite3"
-            with sqlite3.connect(dest) as backup: c.backup(backup)
+            with closing(sqlite3.connect(dest)) as backup: c.backup(backup)
             st.success(f'資料庫備份已建立：{dest}')
         st.subheader('最近操作紀錄')
         table(rows(c,'SELECT * FROM audit ORDER BY id DESC LIMIT 30'))

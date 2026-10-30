@@ -1,3 +1,4 @@
+from contextlib import closing
 import unittest
 import tempfile
 from pathlib import Path
@@ -21,7 +22,7 @@ class Core(unittest.TestCase):
         with self.c:
             i=save_interview(self.c,'INT-01','2026-01-02','測試','匿名需求','待確認','匿名摘要')
             save_interview(self.c,'INT-01','2026-01-02','測試','修改需求','待確認','修改摘要',i)
-        with connect(self.path) as c:
+        with closing(connect(self.path)) as c:
             self.assertEqual(c.execute("SELECT summary FROM interviews WHERE vendor_code LIKE '%INT-01%'").fetchone()[0],'修改摘要')
     def test_invalid_date_and_vendor(self):
         for vendor,date in [('INT-99','2026-01-01'),('INT-01','2026-02-30')]:
@@ -47,7 +48,7 @@ class Core(unittest.TestCase):
     def test_database_backup(self):
         with self.c: save_interview(self.c,'INT-02','2026-01-01','測試','','','匿名')
         target=Path(self.tmp.name)/'backup.sqlite3'
-        with sqlite3.connect(target) as b: self.c.backup(b)
-        with connect(target) as b: self.assertEqual(b.execute('SELECT count(*) FROM interviews').fetchone()[0],1)
+        with closing(sqlite3.connect(target)) as b: self.c.backup(b)
+        with closing(connect(target)) as b: self.assertEqual(b.execute('SELECT count(*) FROM interviews').fetchone()[0],1)
 
 if __name__=='__main__': unittest.main()

@@ -1,3 +1,4 @@
+from contextlib import closing
 import sys
 import importlib
 from pathlib import Path
@@ -12,7 +13,7 @@ try:
     import tempfile
     with tempfile.TemporaryDirectory() as d:
         p=Path(d)/'test.sqlite3'; init(p)
-        with connect(p) as c: assert c.execute('SELECT count(*) FROM vendors').fetchone()[0]==12
+        with closing(connect(p)) as c: assert c.execute('SELECT count(*) FROM vendors').fetchone()[0]==12
     print('SQLite：正常')
 except Exception as e: errors.append('資料庫檢查失敗：'+str(e))
 for e in errors: print(e)
